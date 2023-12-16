@@ -1,20 +1,19 @@
-# try wrapping the code below that reads a persons.csv file in a class and make it more general such that it can read in any csv file
 import copy
-import csv, os
-
+import csv
+import os
 
 class Csv:
     def __init__(self, file_name):
         self.__filename = file_name
+        self.__location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        self.__file = []
 
     def read_csv(self):
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        persons = []
-        with open(os.path.join(__location__, 'persons.csv')) as f:
+        with open(os.path.join(self.__location, self.__filename)) as f:
             rows = csv.DictReader(f)
             for r in rows:
-                persons.append(dict(r))
-        return persons
+                self.__file.append(dict(r))
+        return self.__file
 
 
 class Database:
@@ -31,7 +30,6 @@ class Database:
         return None
 
 
-# add in code for a Database class
 class Table:
     def __init__(self, table_name, table):
         self.table_name = table_name
@@ -73,20 +71,35 @@ class Table:
                 temps.append(item1[aggregation_key])
         return function(temps)
 
+    def insert(self, item):
+        self.table.append(item)
+
+    def update(self, key, old_value, new_value):
+        for i in self.table:
+            if i[key] == old_value:
+                i[key] = new_value
+        return self.table
+
     def select(self, attributes_list):
         temps = []
-        for item1 in self.table:
+        for item in self.table:
             dict_temp = {}
-            for key in item1:
+            for key in item:
                 if key in attributes_list:
-                    dict_temp[key] = item1[key]
+                    dict_temp[key] = item[key]
             temps.append(dict_temp)
         return temps
 
     def __str__(self):
-        return self.table_name + ':' + str(self.table)
-# add in code for a Table class
+        return f"{self.table_name}:{str(self.table)}"
 
-# modify the code in the Table class so that it supports the insert operation where an entry can be added to a list of dictionary
 
-# modify the code in the Table class so that it supports the update operation where an entry's value associated with a key can be updated
+# Example usage
+# csv_reader = Csv('your_file.csv')
+# data = csv_reader.read()
+# my_table = Table('example_table', data)
+# print(my_table)
+# my_table.insert({'key': 'new_value'})
+# print(my_table)
+# my_table.update('key', 'old_value', 'updated_value')
+# print(my_table)
