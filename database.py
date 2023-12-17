@@ -20,6 +20,31 @@ class Database:
     def __init__(self):
         self.database = []
 
+    def update_tables(self):
+        self.update_login_csv()
+        self.update_member_pending_request_csv()
+        self.update_project_csv()
+
+    def update_login_csv(self):
+        with open("login.csv", "w", newline="") as login_file:
+            login_writer = csv.DictWriter(login_file, fieldnames=self.search("login").table[0].keys())
+            login_writer.writeheader()
+            login_writer.writerows(self.search("login").table)
+
+    def update_member_pending_request_csv(self):
+        with open("member_pending_request.csv", "w", newline="") as member_pending_request_file:
+            member_pending_request_writer = csv.DictWriter(member_pending_request_file,
+                                                           fieldnames=self.search("member_pending_request").table[
+                                                               0].keys())
+            member_pending_request_writer.writeheader()
+            member_pending_request_writer.writerows(self.search("member_pending_request").table)
+
+    def update_project_csv(self):
+        with open("project.csv", "w", newline="") as project_file:
+            project_writer = csv.DictWriter(project_file, fieldnames=self.search("project").table[0].keys())
+            project_writer.writeheader()
+            project_writer.writerows(self.search("project").table)
+
     def insert(self, table):
         self.database.append(table)
 
@@ -93,13 +118,3 @@ class Table:
     def __str__(self):
         return f"{self.table_name}:{str(self.table)}"
 
-
-# Example usage
-# csv_reader = Csv('your_file.csv')
-# data = csv_reader.read()
-# my_table = Table('example_table', data)
-# print(my_table)
-# my_table.insert({'key': 'new_value'})
-# print(my_table)
-# my_table.update('key', 'old_value', 'updated_value')
-# print(my_table)
