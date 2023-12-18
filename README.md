@@ -1,16 +1,3 @@
-# Sunthorn Project Management System
-* all the files in this project
-  - person.csv - Database for storing user information such as ID, role, etc.
-  - login.csv - Database for storing login information such as username, password, etc.
-  - project.csv - Database for storing project information such as project name, project ID, etc.
-  - advisor_pending_request.csv - Database for storing pending request from advisor.
-  - member_pending_request.csv - Database for storing pending request from member.
-  - evaluations.csv - Database for storing evaluations of each project.
-  - database.py -Defines classes for managing the overall database structure, tables, and CSV file operations.
-  - project_manage.py - Contains the most of the important functions for managing the project.
-  - proposal.md - Contains the proposal of this project.
-  - TODO.md - Contains the list of tasks that need to be done.
-  - README.md - To provide an overview of the project, its structure, and important information for contributors and users.
 
 # Final Project Repository
 
@@ -100,15 +87,15 @@ The `Advisor` class represents an advisor user with actions for viewing all proj
 | Member  | View Responses             | `Member.view_responses`             | 95%            |
 | Member  | Modify Project Information | `Member.modify_project_information` | 95%            |
 | Faculty | View All Projects          | `Faculty.view_all_projects`         | 90%            |
-| Faculty | Check Pending Requests     | `Faculty.check_pending_requests`    | 85%            |
-| Faculty | Accept Request             | `Faculty.accept_request`            | 80%            |
-| Faculty | Deny Request               | `Faculty.deny_request`              | 75%            |
-| Faculty | Evaluate Projects          | `Faculty.evaluate_project`          | 70%            |
+| Faculty | Check Pending Requests     | `Faculty.check_pending_requests`    | 90%            |
+| Faculty | Accept Request             | `Faculty.accept_request`            | 90%            |
+| Faculty | Deny Request               | `Faculty.deny_request`              | 90%            |
+| Faculty | Evaluate Projects          | `Faculty.evaluate_project`          | 90%            |
 | Advisor | View All Projects          | `Advisor.view_all_projects`         | 90%            |
-| Advisor | Check Pending Requests     | `Advisor.check_pending_requests`    | 85%            |
-| Advisor | Accept Request             | `Advisor.accept_request`            | 80%            |
-| Advisor | Deny Request               | `Advisor.deny_request`              | 80%            |
-| Advisor | Evaluate Projects          | `Advisor.evaluate_project`          | 70%            |
+| Advisor | Check Pending Requests     | `Advisor.check_pending_requests`    | 90%            |
+| Advisor | Accept Request             | `Advisor.accept_request`            | 90%            |
+| Advisor | Deny Request               | `Advisor.deny_request`              | 90%            |
+| Advisor | Evaluate Projects          | `Advisor.evaluate_project`          | 90%            |
 
 # Missing Features and Outstanding Bugs
 
@@ -122,4 +109,8 @@ The `Advisor` class represents an advisor user with actions for viewing all proj
 
 ## Outstanding Bugs
 
-- 
+- admin.update_all_tables() does not work properly.
+- admin.modify_user_role() does not work properly.
+- admin.update_row_in_table() does not work properly.
+- admin.append_row_to_table() does not work properly.
+- don't have enough time to test all the methods so completeness percentage may not be accurate.
