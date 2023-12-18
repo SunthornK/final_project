@@ -32,12 +32,15 @@ class Database:
             login_writer.writerows(self.search("login").table)
 
     def update_member_pending_request_csv(self):
-        with open("member_pending_request.csv", "w", newline="") as member_pending_request_file:
-            member_pending_request_writer = csv.DictWriter(member_pending_request_file,
-                                                           fieldnames=self.search("member_pending_request").table[
-                                                               0].keys())
-            member_pending_request_writer.writeheader()
-            member_pending_request_writer.writerows(self.search("member_pending_request").table)
+        member_pending_request_table = self.search("member_pending_request")
+        if member_pending_request_table.table:
+            with open("member_pending_request.csv", "w", newline="") as member_pending_request_file:
+                member_pending_request_writer = csv.DictWriter(member_pending_request_file,
+                                                               fieldnames=member_pending_request_table.table[0].keys())
+                member_pending_request_writer.writeheader()
+                member_pending_request_writer.writerows(member_pending_request_table.table)
+        else:
+            print("Member_pending_request table is empty. No update needed.")
 
     def update_project_csv(self):
         with open("project.csv", "w", newline="") as project_file:
@@ -99,10 +102,10 @@ class Table:
     def insert(self, item):
         self.table.append(item)
 
-    def update(self, key, old_value, new_value):
+    def update(self,find_key, find_value, new_key, new_value):
         for i in self.table:
-            if i[key] == old_value:
-                i[key] = new_value
+            if i[find_key] == find_value:
+                i[new_key] = new_value
         return self.table
 
     def select(self, attributes_list):
