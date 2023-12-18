@@ -1,4 +1,5 @@
 import datetime
+import json
 import random
 
 from database import Database, Table, Csv
@@ -53,9 +54,7 @@ def login():
 
 
 def exit_program(my_db):
-    my_db.update_login_csv()
-    my_db.update_member_pending_request_csv()
-    my_db.update_project_csv()
+    my_db.update_tables()
     print("Data saved. Exiting the program.")
 
 
@@ -181,14 +180,11 @@ class Lead:
         return status_values
 
     def send_member_requests(self, project_id, member_ids):
-        # Check if the user is a lead of the specified project
         project = self.project_table.filter(lambda p: p['ProjectID'] == project_id)
         check_if_lead_of_project = self.project_table.filter(lambda request: request['Lead'] == self.user_id)
         if project and check_if_lead_of_project:
-            # Check if the member is a student (not a member or lead)
             member = self.login_table.filter(lambda m: m['ID'] == member_ids and m['role'] == 'student')
             if member:
-                # Add request to Member_pending_request table
                 new_request = {
                     "ProjectID": project_id,
                     "to_be_member": member_ids,
@@ -208,15 +204,12 @@ class Lead:
         return response
 
     def send_advisor_request(self, project_id, advisor_id):
-        # Check if all potential members have responded
         pending_members = self.member_requests.filter(
             lambda req: req['ProjectID'] == project_id and req['Response'] == 'Pending'
         )
         if pending_members:
             print("Cannot send advisor request until all potential members have responded.")
             return
-
-        # Check if the advisor is valid (exists and is not already associated with the project)
         advisor = self.login_table.filter(
             lambda adv: adv['ID'] == advisor_id and adv['role'] == 'advisor'
         )
@@ -224,13 +217,10 @@ class Lead:
             lambda p: p['ProjectID'] == project_id and p['lead_id'] == self.user_id
         )
         if advisor and project:
-            # Check if the advisor is not already associated with the project
             associated_advisor = project[0].get('AdvisorID')
             if associated_advisor != advisor_id:
                 print("An advisor is already associated with this project.")
                 return
-
-            # Add request to Advisor_pending_request table
             new_request = {
                 "ProjectID": project_id,
                 "to_be_advisor": advisor_id,
@@ -381,7 +371,6 @@ class Faculty:
             print(f"Request for be an advisor {request_id} not found.")
 
     def evaluate_project(self, project_id):
-        # Display the list of projects available for evaluation
         projects_for_evaluation = self.project_table.filter(lambda p: p['Advisor'] != self.user_id)
 
         if not projects_for_evaluation:
@@ -391,21 +380,17 @@ class Faculty:
         print("Projects available for evaluation:")
         for project in projects_for_evaluation:
             print(f"{project['ProjectID']}: {project['Title']}")
-
-        # Check if the chosen project exists
         chosen_project = self.project_table.filter(lambda p: p['ProjectID'] == project_id)
 
         if chosen_project:
             evaluation_date = datetime.date.today().strftime("%m/%d/%Y")
 
-            # Add other criteria as needed
             criteria = input("Enter evaluation criteria: ")
             presentation = input("Enter presentation score: ")
             creativity = input("Enter creativity score: ")
             comments = input("Enter additional comments: ")
             grade = input("Enter overall grade: ")
 
-            # Update the CSV file with the evaluation
             evaluation_data = {
                 'ProjectID': project_id,
                 'Evaluator_ID': self.user_id,
@@ -502,9 +487,7 @@ class Advisor:
             print(f"Request for be an advisor {request_id} not found.")
 
     def evaluate_project(self, project_id):
-        # Display the list of projects available for evaluation
         projects_for_evaluation = self.project_table.filter(lambda p: p['Advisor'] != self.user_id)
-
         if not projects_for_evaluation:
             print("No projects available for evaluation.")
             return
@@ -512,21 +495,17 @@ class Advisor:
         print("Projects available for evaluation:")
         for project in projects_for_evaluation:
             print(f"{project['ProjectID']}: {project['Title']}")
-
-        # Check if the chosen project exists
         chosen_project = self.project_table.filter(lambda p: p['ProjectID'] == project_id)
 
         if chosen_project:
             evaluation_date = datetime.date.today().strftime("%m/%d/%Y")
 
-            # Add other criteria as needed
             criteria = input("Enter evaluation criteria: ")
             presentation = input("Enter presentation score: ")
             creativity = input("Enter creativity score: ")
             comments = input("Enter additional comments: ")
             grade = input("Enter overall grade: ")
 
-            # Update the CSV file with the evaluation
             evaluation_data = {
                 'ProjectID': project_id,
                 'Evaluator_ID': self.user_id,
@@ -590,13 +569,84 @@ class Advisor:
 
 
 class Admin:
-    def __init__(self, user_id, my_db):
-        self.user_id = user_id
-        self.member_requests = my_db.search('member_pending_request')
-        self.login_table = my_db.search('login')
-        self.project_table = my_db.search('project')
-        self.advisor_requests = my_db.search('advisor_pending_request')
-        self.evaluate_table = my_db.search('evaluations')
+    def __init__(self, my_db):
+        self.my_db = my_db
+
+    def view_all_users(self):
+        # Display information about all users
+        users = self.my_db.search('login').table
+        for user in users:
+            print(user)
+
+    def modify_user_role(self, user_id, new_role):
+        # Modify the role of a specific user
+        login_table = self.my_db.search('login')
+        user = login_table.filter(lambda u: u['ID'] == user_id)
+        if user:
+            login_table.update('ID', user_id, 'role', new_role)
+            print(f"Role of user {user_id} updated to {new_role}.")
+        else:
+            print(f"User with ID {user_id} not found.")
+
+    def update_row_in_table(self, table_name, condition_field, condition_value, updated_data):
+
+        updated_data_dict = eval(updated_data)
+
+        table = self.my_db.search(table_name)
+        row = table.filter(lambda r: r[condition_field] == condition_value)
+        if row:
+            table.update(condition_field, condition_value, **updated_data_dict)
+            print(f"Row updated in table {table_name}.")
+        else:
+            print(f"Row not found in table {table_name}.")
+
+    def append_row_to_table(self, table_name, new_data):
+        table = self.my_db.search(table_name)
+        table.insert(new_data)
+        print(f"Row appended to table {table_name}.")
+
+    def update_all_tables(self):
+        for table_name in self.my_db.get_table_names():
+            table = self.my_db.search(table_name)
+            table.update_csv()
+
+    def admin_menu(self):
+        print("-" * 50)
+        print("Admin Menu:")
+        print("1. View All Users")
+        print("2. Modify User Role")
+        print("3. Update Row in Table")
+        print("4. Append Row to Table")
+        print("5. Update All Tables")
+        print("6. Quit")
+
+    def run_menu(self):
+        while True:
+            self.admin_menu()
+            choice = input("Enter your choice (1-6): ")
+
+            if choice == '1':
+                self.view_all_users()
+            elif choice == '2':
+                user_id = input("Enter the user ID to modify: ")
+                new_role = input("Enter the new role: ")
+                self.modify_user_role(user_id, new_role)
+            elif choice == '3':
+                table_name = input("Enter the table name: ")
+                condition_field = input("Enter the condition field: ")
+                condition_value = input("Enter the condition value: ")
+                updated_data = input('Enter the updated data (in JSON format)\nexample {"Lead": "new_lead", "Status": "updated"}: ')
+                self.update_row_in_table(table_name, condition_field, condition_value, updated_data)
+            elif choice == '4':
+                table_name = input("Enter the table name: ")
+                new_data = input("Enter the new data (in JSON format): ")
+                self.append_row_to_table(table_name, new_data)
+            elif choice == '5':
+                self.update_all_tables()
+            elif choice == '6':
+                break
+            else:
+                print("Invalid choice. Please enter a number between 1 and 6.")
 
 
 db = initializing()
@@ -604,7 +654,8 @@ print()
 val = login()
 
 if val[1] == 'admin':
-    pass
+    admin = Admin(db)
+    admin.run_menu()
 elif val[1] == 'student':
     student = Student(val[0], db)
     student.run_menu()

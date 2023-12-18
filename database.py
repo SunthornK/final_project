@@ -21,32 +21,8 @@ class Database:
         self.database = []
 
     def update_tables(self):
-        self.update_login_csv()
-        self.update_member_pending_request_csv()
-        self.update_project_csv()
-
-    def update_login_csv(self):
-        with open("login.csv", "w", newline="") as login_file:
-            login_writer = csv.DictWriter(login_file, fieldnames=self.search("login").table[0].keys())
-            login_writer.writeheader()
-            login_writer.writerows(self.search("login").table)
-
-    def update_member_pending_request_csv(self):
-        member_pending_request_table = self.search("member_pending_request")
-        if member_pending_request_table.table:
-            with open("member_pending_request.csv", "w", newline="") as member_pending_request_file:
-                member_pending_request_writer = csv.DictWriter(member_pending_request_file,
-                                                               fieldnames=member_pending_request_table.table[0].keys())
-                member_pending_request_writer.writeheader()
-                member_pending_request_writer.writerows(member_pending_request_table.table)
-        else:
-            print("Member_pending_request table is empty. No update needed.")
-
-    def update_project_csv(self):
-        with open("project.csv", "w", newline="") as project_file:
-            project_writer = csv.DictWriter(project_file, fieldnames=self.search("project").table[0].keys())
-            project_writer.writeheader()
-            project_writer.writerows(self.search("project").table)
+        for table in self.database:
+            table.update_csv()
 
     def insert(self, table):
         self.database.append(table)
@@ -62,6 +38,15 @@ class Table:
     def __init__(self, table_name, table):
         self.table_name = table_name
         self.table = table
+
+    def update_csv(self):
+        if not self.table:
+            return
+
+        with open(f"{self.table_name}.csv", "w", newline="") as csv_file:
+            csv_writer = csv.DictWriter(csv_file, fieldnames=self.table[0].keys())
+            csv_writer.writeheader()
+            csv_writer.writerows(self.table)
 
     def join(self, other_table, common_key):
         joined_table = Table(self.table_name + '_joins_' + other_table.table_name, [])
